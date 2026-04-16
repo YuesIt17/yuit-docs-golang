@@ -15,36 +15,36 @@ func Unpack(str string) (string, error) {
 	var res strings.Builder
 
 	// флаг для проверки, если две цифры подряд
-	prevDigit := false
+	isPrevDigit := false
 	// проверка, что перед текущей руной был символ экранирования '\'
-	escaped := false
+	hasEscaped := false
 	// последний добавленный символ
 	lastRune := rune(0)
 
 	for _, r := range str {
 		// если был символ экранирования '\'
-		if escaped {
+		if hasEscaped {
 			// допускаются только цифры или символ экранирования
 			if r != escapeChar && !(unicode.IsDigit(r)) {
 				return "", ErrInvalidString
 			}
 			res.WriteRune(r)
 			lastRune = r
-			escaped = false
-			prevDigit = false
+			hasEscaped = false
+			isPrevDigit = false
 			continue
 		}
 
 		// '\' экранирует следующую руну.
 		if r == escapeChar {
-			escaped = true
+			hasEscaped = true
 			continue
 		}
 
 		// если цифра, то повторяем предыдущий символ
 		if unicode.IsDigit(r) {
 			// проверяем, что перед цифрой не было символа или цифры
-			if lastRune == 0 || prevDigit {
+			if lastRune == 0 || isPrevDigit {
 				return "", ErrInvalidString
 			}
 
@@ -52,6 +52,7 @@ func Unpack(str string) (string, error) {
 			if err != nil {
 				return "", ErrInvalidString
 			}
+
 			if n == 0 {
 				s := []rune(res.String())
 				if len(s) == 0 {
@@ -65,17 +66,17 @@ func Unpack(str string) (string, error) {
 				res.WriteString(strings.Repeat(string(lastRune), n-1))
 			}
 
-			prevDigit = true
+			isPrevDigit = true
 			continue
 		}
 
 		res.WriteRune(r)
 		lastRune = r
-		prevDigit = false
+		isPrevDigit = false
 	}
 
 	// Если строка закончилась сразу после '\', это некорректный ввод.
-	if escaped {
+	if hasEscaped {
 		return "", ErrInvalidString
 	}
 	return res.String(), nil
