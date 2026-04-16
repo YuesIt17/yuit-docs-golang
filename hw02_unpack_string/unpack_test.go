@@ -18,11 +18,12 @@ func TestUnpack(t *testing.T) {
 		{input: "aaa0b", expected: "aab"},
 		{input: "🙃0", expected: ""},
 		{input: "aaф0b", expected: "aab"},
-		// uncomment if task with asterisk completed
-		// {input: `qwe\4\5`, expected: `qwe45`},
-		// {input: `qwe\45`, expected: `qwe44444`},
-		// {input: `qwe\\5`, expected: `qwe\\\\\`},
-		// {input: `qwe\\\3`, expected: `qwe\3`},
+		// Раскомментировать, если сделано задание со звёздочкой (*)
+		{input: `qwe\4\5`, expected: `qwe45`},
+		{input: `qwe\45`, expected: `qwe44444`},
+		{input: `qwe\\5`, expected: `qwe\\\\\`},
+		{input: `qwe\\\3`, expected: `qwe\3`},
+		{input: `\\qw`, expected: `\qw`},
 	}
 
 	for _, tc := range tests {
@@ -36,12 +37,21 @@ func TestUnpack(t *testing.T) {
 }
 
 func TestUnpackInvalidString(t *testing.T) {
-	invalidStrings := []string{"3abc", "45", "aaa10b"}
+	invalidStrings := []string{
+		"3abc",   // начинается с цифры
+		"45",     // начинается с цифры (только цифры)
+		"aaa10b", // две цифры подряд => "число" запрещено
+
+		`qwe\`,   // строка заканчивается на escape
+		`qw\ne\`, // после '\' экранировать можно только цифру или '\'
+		`qwe\a`,  // после '\' нельзя экранировать букву
+		`\\\`,    // заканчивается на escape
+	}
 	for _, tc := range invalidStrings {
 		tc := tc
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
-			require.Truef(t, errors.Is(err, ErrInvalidString), "actual error %q", err)
+			require.Truef(t, errors.Is(err, ErrInvalidString), "фактическая ошибка %q", err)
 		})
 	}
 }
