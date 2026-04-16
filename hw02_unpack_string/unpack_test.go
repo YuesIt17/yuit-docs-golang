@@ -3,8 +3,6 @@ package hw02unpackstring
 import (
 	"errors"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestUnpack(t *testing.T) {
@@ -27,11 +25,14 @@ func TestUnpack(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.input, func(t *testing.T) {
 			result, err := Unpack(tc.input)
-			require.NoError(t, err)
-			require.Equal(t, tc.expected, result)
+			if err != nil {
+				t.Fatalf("неожиданная ошибка: %v", err)
+			}
+			if result != tc.expected {
+				t.Fatalf("ожидали %q, получили %q", tc.expected, result)
+			}
 		})
 	}
 }
@@ -48,10 +49,11 @@ func TestUnpackInvalidString(t *testing.T) {
 		`\\\`,    // заканчивается на escape
 	}
 	for _, tc := range invalidStrings {
-		tc := tc
 		t.Run(tc, func(t *testing.T) {
 			_, err := Unpack(tc)
-			require.Truef(t, errors.Is(err, ErrInvalidString), "фактическая ошибка %q", err)
+			if !errors.Is(err, ErrInvalidString) {
+				t.Fatalf("ожидали ErrInvalidString, фактическая ошибка %v", err)
+			}
 		})
 	}
 }
