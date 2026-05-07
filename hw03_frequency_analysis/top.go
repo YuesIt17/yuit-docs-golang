@@ -3,6 +3,7 @@ package hw03frequencyanalysis
 import (
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type item struct {
@@ -10,8 +11,62 @@ type item struct {
 	count int
 }
 
+
+func trimRunes(r []rune, drop func(rune) bool) []rune {
+	start := 0
+	for start < len(r) && drop(r[start]) {
+		start++
+	}
+	end := len(r)
+	for end > start && drop(r[end-1]) {
+		end--
+	}
+	return r[start:end]
+}
+
+func normalizeToken(token string) string {
+	s := strings.ToLower(token)
+	r := []rune(s)
+
+	trimmedRunes  := trimRunes(r, func(ch rune) bool {
+		return !unicode.IsLetter(ch) && !unicode.IsNumber(ch)
+	})
+
+	trimmed := string(trimmedRunes)
+	switch trimmed {
+	case "":
+		allHyphens := len(r) > 0
+		for _, ch := range r {
+			if ch != '-' {
+				allHyphens = false
+				break
+			}
+		}
+		if allHyphens && len(r) > 1 {
+			return s
+		}
+		return ""
+	case "-":
+		return ""
+	default:
+		return trimmed
+	}
+}
+
 func Top10(text string) []string {
-	frases := strings.Fields(text)
+	raw := strings.Fields(text)
+	if len(raw) == 0 {
+		return nil
+	}
+
+	frases := make([]string, 0, len(raw))
+	for _, token := range raw {
+		norm := normalizeToken(token)
+		if norm == "" {
+			continue
+		}
+		frases = append(frases, norm)
+	}
 	if len(frases) == 0 {
 		return nil
 	}
