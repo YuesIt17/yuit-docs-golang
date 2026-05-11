@@ -48,6 +48,20 @@ func TestTop10(t *testing.T) {
 		require.Len(t, Top10(""), 0)
 	})
 
+	t.Run("equal frequency sorted lexicographically", func(t *testing.T) {
+		require.Equal(t,
+			[]string{"арбуз", "банан", "вишня"},
+			Top10("вишня арбуз банан вишня арбуз банан вишня арбуз банан"),
+		)
+	})
+
+	t.Run("asterisk normalization merges case and edge punctuation", func(t *testing.T) {
+		if !taskWithAsteriskIsCompleted {
+			t.Skip()
+		}
+		require.Equal(t, []string{"привет"}, Top10("Привет, привет ПРИВЕТ."))
+	})
+
 	t.Run("positive test", func(t *testing.T) {
 		if taskWithAsteriskIsCompleted {
 			expected := []string{
