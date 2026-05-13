@@ -49,54 +49,57 @@ func TestCache(t *testing.T) {
 		require.Nil(t, val)
 	})
 
-	t.Run("purge logic", func(t *testing.T) {
-		t.Run("evict oldest when capacity exceeded", func(t *testing.T) {
-			c := NewCache(3)
-			require.False(t, c.Set("a", 1))
-			require.False(t, c.Set("b", 2))
-			require.False(t, c.Set("c", 3))
-			require.False(t, c.Set("d", 4))
-
-			_, ok := c.Get("a")
-			require.False(t, ok)
-
-			for _, tc := range []struct {
-				key Key
-				val int
-			}{
-				{"b", 2},
-				{"c", 3},
-				{"d", 4},
-			} {
-				v, ok := c.Get(tc.key)
-				require.True(t, ok, string(tc.key))
-				require.Equal(t, tc.val, v)
-			}
-		})
-
-		t.Run("evict least recently used after touches", func(t *testing.T) {
-			c := NewCache(3)
-			require.False(t, c.Set("a", 1))
-			require.False(t, c.Set("b", 2))
-			require.False(t, c.Set("c", 3))
-
-			_, ok := c.Get("a")
-			require.True(t, ok)
-
-			require.False(t, c.Set("d", 4))
-
-			_, ok = c.Get("b")
-			require.False(t, ok)
-
-			for _, key := range []Key{"a", "c", "d"} {
-				_, ok := c.Get(key)
-				require.True(t, ok, string(key))
-			}
-		})
-	})
+	t.Run("purge oldest when capacity exceeded", testCacheEvictOldestWhenFull)
+	t.Run("purge least recently used after touches", testCacheEvictLRUAfterTouches)
 }
 
-func TestCacheMultithreading(t *testing.T) {
+func testCacheEvictOldestWhenFull(t *testing.T) {
+	t.Helper()
+	c := NewCache(3)
+	require.False(t, c.Set("a", 1))
+	require.False(t, c.Set("b", 2))
+	require.False(t, c.Set("c", 3))
+	require.False(t, c.Set("d", 4))
+
+	_, ok := c.Get("a")
+	require.False(t, ok)
+
+	for _, tc := range []struct {
+		key Key
+		val int
+	}{
+		{"b", 2},
+		{"c", 3},
+		{"d", 4},
+	} {
+		v, ok := c.Get(tc.key)
+		require.True(t, ok, string(tc.key))
+		require.Equal(t, tc.val, v)
+	}
+}
+
+func testCacheEvictLRUAfterTouches(t *testing.T) {
+	t.Helper()
+	c := NewCache(3)
+	require.False(t, c.Set("a", 1))
+	require.False(t, c.Set("b", 2))
+	require.False(t, c.Set("c", 3))
+
+	_, ok := c.Get("a")
+	require.True(t, ok)
+
+	require.False(t, c.Set("d", 4))
+
+	_, ok = c.Get("b")
+	require.False(t, ok)
+
+	for _, key := range []Key{"a", "c", "d"} {
+		_, ok := c.Get(key)
+		require.True(t, ok, string(key))
+	}
+}
+
+func TestCacheMultithreading(_ *testing.T) {
 	c := NewCache(10)
 	wg := &sync.WaitGroup{}
 	wg.Add(2)

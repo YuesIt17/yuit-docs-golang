@@ -6,7 +6,7 @@ import "sync"
 // Key — ключ записи в кэше.
 type Key string
 
-// Cache — LRU-кэш ограниченной ёмкости
+// Cache — LRU-кэш ограниченной ёмкости.
 type Cache interface {
 	// Set сохраняет value по ключу key.
 	// Если ключ уже есть: обновляет значение, переносит элемент в начало очереди и возвращает true.
@@ -24,7 +24,7 @@ type Cache interface {
 	Clear()
 }
 
-// listVal — значение кэша в ListItem.Value узла очереди (нужен listKey при вытеснении LRU).
+// listVal — ключ и значение кэша в ListItem.Value узла очереди (listKey нужен при вытеснении LRU).
 type listVal struct {
 	listKey Key
 	listVal interface{}
