@@ -1,15 +1,24 @@
 package hw04lrucache
 
+// List — двусвязный список: все операции выполняются за O(1) без полного обхода списка.
 type List interface {
+	// Len возвращает количество элементов в списке.
 	Len() int
+	// Front возвращает первый элемент или nil, если список пуст.
 	Front() *ListItem
+	// Back возвращает последний элемент или nil, если список пуст.
 	Back() *ListItem
+	// PushFront вставляет значение v в начало списка и возвращает новый узел.
 	PushFront(v interface{}) *ListItem
+	// PushBack вставляет значение v в конец списка и возвращает новый узел.
 	PushBack(v interface{}) *ListItem
+	// Remove удаляет узел i из списка. i должен принадлежать этому списку.
 	Remove(i *ListItem)
+	// MoveToFront перемещает узел i в начало списка. i должен принадлежать этому списку.
 	MoveToFront(i *ListItem)
 }
 
+// ListItem — элемент двусвязного списка.
 type ListItem struct {
 	Value interface{}
 	Next  *ListItem
@@ -22,6 +31,7 @@ type list struct {
 	back *ListItem
 }
 
+// NewList возвращает пустой список.
 func NewList() List {
 	return &list{
 		head: &ListItem{},
